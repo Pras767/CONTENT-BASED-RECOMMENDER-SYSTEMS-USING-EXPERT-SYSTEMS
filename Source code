@@ -1,0 +1,98 @@
+Source Code:
+IMPORTING THE LIBRARIES 
+import time 
+start = time.time() 
+from PIL import Image 
+import os 
+import matplotlib.pyplot as plt 
+import numpy as np 
+from keras.applications import vgg16 
+from tensorflow.keras.preprocessing.image import load_img,img_to_array 
+from keras.models import Model 
+from keras.applications.imagenet_utils import preprocess_input 
+import pickle 
+from sklearn.metrics.pairwise import cosine_similarity 
+import pandas as pd 
+from tensorflow.keras.models import save_model 
+LOADING THE IMAGES 
+imgs_path = "E:/student_project/recommendation_systems/archive (15)/images/train/" 
+imgs_model_width, imgs_model_height = 224, 224 
+files = [imgs_path + x for x in os.listdir(imgs_path) if "jpeg" in x]
+print("Total number of images:",len(files)) 
+files=files[0:5000] 
+# In[3]: 
+original = load_img(files[9], target_size=(imgs_model_width, imgs_model_height)) 
+plt.imshow(original) 
+plt.show() 
+print("Image loaded successfully!") 
+IMPORTING MODEL 
+from tensorflow.keras.models import load_model 
+# load model 
+model = load_model('model.h5') 
+Training and Testing 
+# In[5]: 
+numpy_image = img_to_array(original) 
+# convert the image / images into batch format 
+# expand_dims will add an extra dimension to the data at a particular axis 
+# we want the input matrix to the network to be of the form (batchsize, height, width, 
+channels) 
+# thus we add the extra dimension to the axis 0. 
+image_batch = np.expand_dims(numpy_image, axis=0) 
+print('Image Batch size', image_batch.shape) 
+# prepare the image for the VGG model 
+processed_image = preprocess_input(image_batch.copy())
+# In[6]: 
+img_features = model.predict(processed_image) 
+print("Features successfully extracted for one image!") 
+print("Number of image features:",img_features.size) 
+img_features 
+# In[7]: 
+objects=[] 
+PICKLE_IMAGES = 
+"E:\\student_project\\recommendation_systems\\images1.pickle" 
+with open(PICKLE_IMAGES,"rb") as openfile: 
+while True: 
+try: 
+obb=pickle.load(openfile) 
+print(type(obb)) 
+# objects.append(pickle.load(openfile+img_features)) 
+except EOFError: 
+break 
+# In[8]: 
+obb1=np.concatenate((obb, img_features)) 
+# In[9]: 
+files=files+['new'] 
+# In[10]: 
+files[-1]
+# In[11]: 
+cosSimilarities = cosine_similarity(obb1) 
+# store the results into a pandas dataframe 
+cos_similarities_df = pd.DataFrame(cosSimilarities, columns=files, index=files) 
+cos_similarities_df 
+# In[12]: 
+nb_closest_images=5 
+def retrieve_most_similar_products(given_img): 
+print(" ") 
+print("original product:") 
+original = load_img(files[9], target_size=(imgs_model_width, imgs_model_height)) 
+plt.imshow(original) 
+plt.show() 
+print(" ") 
+print("most similar products:") 
+closest_imgs = 
+cos_similarities_df[given_img].sort_values(ascending=False)[1:nb_closest_images+1 
+].index 
+closest_imgs_scores = 
+cos_similarities_df[given_img].sort_values(ascending=False)[1:nb_closest_images+1 
+] 
+for i in range(0,len(closest_imgs)):
+original = load_img(closest_imgs[i], target_size=(imgs_model_width, 
+imgs_model_height)) 
+plt.imshow(original) 
+plt.show() 
+print("similarity score : ",closest_imgs_scores[i]) 
+# In[13]: 
+retrieve_most_similar_products(files[-1]) 
+end = time.time() 
+print(end - start) 
+# In[ ]:
